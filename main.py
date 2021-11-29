@@ -1,5 +1,5 @@
 import consulta
-
+#comm
 db = consulta.conexion()
 
 consulta.consulta_usuario(db)
