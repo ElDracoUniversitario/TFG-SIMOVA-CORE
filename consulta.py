@@ -49,7 +49,13 @@ def validacion(db,num_soporte):
         
         print("El soporte {0} {1} está bloqueado y pertenece al usuario con dni {2}, tiene el título {3} de {4} zonas".format(num_soporte, es_bloqueo, dni, nombre_de_titulo, zonas))
     if bloqueo == 0:
-        viaje(db,num_soporte)
+        if titulo != 0:
+            estado = 1
+        if titulo == 0:
+            estado = 0
+    if bloqueo == 0:
+        estado = 0
+    viaje(db,num_soporte,estado)
     return
     #if bloqueo == 0:
     
@@ -78,16 +84,23 @@ def nombre_titulo(db,num_titulo):
         print("El titulo {0} es una {1}. {2}s Ilimitado y tiene una uso de {3}días continuados".format(num_titulo, nombre, es_ilimitado, caducidad))
     return nombre
 
-def viaje(db,num_soporte):
+def viaje(db,num_soporte,estado):
     cursor = db.cursor()
 
     sql = "INSERT INTO `historico`(`uid_soporte`, `uid_historico`, `fecha`, `hora`, `estatus`, `estacion`) VALUES (%s,%s,%s,%s,%s,%s)"
 
     fecha1 = datetime.today().strftime('%Y-%m-%d')
     hora1 = datetime.today().strftime('%H:%M:%S')
+    estacion = 101534
 
-    cursor.execute(sql,(num_soporte,'',fecha1,hora1,1,101534))
+    cursor.execute(sql,(num_soporte,'',fecha1,hora1,estado,estacion))
     db.commit()
+    
+    if estado == 1:
+        print("El soporte {0} ha realizado un viaje correcto a las {1} del {2} en la estación {3} ".format(num_soporte, hora1, fecha1, estacion))
+    else:
+        print("El soporte {0} no ha realizado la validación por no disponer de un título válido".format(num_soporte))
+
     return 
     
 
