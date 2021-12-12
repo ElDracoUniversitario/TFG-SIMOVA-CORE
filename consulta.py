@@ -1,5 +1,6 @@
 import pymysql
 from datetime import datetime
+import random
 
 def conexion():
     
@@ -26,7 +27,7 @@ def consulta_usuario(db):
         print("El usuario con dni {0}, se llama {1} {2} {3}, y tiene el email {4}".format(dni, nombre, apellido1, apellido2, email))
     return
     
-def validacion(db,num_soporte):
+def validacion(db,num_soporte,hash_fecha):
     cursor = db.cursor()
 
     sql = "SELECT * FROM soporte WHERE uid_soporte = '" + str(num_soporte) +"'"
@@ -35,6 +36,8 @@ def validacion(db,num_soporte):
     cursor.execute(sql)
 
     resultados = cursor.fetchall()
+    
+    vuelta = 2
 
     for row in resultados:
         dni = row[1]
@@ -42,6 +45,7 @@ def validacion(db,num_soporte):
         titulo = row[3]
         nombre_de_titulo = nombre_titulo(db,titulo)
         zonas = row[5]
+        firma = row[7]
         if bloqueo == 0:
             es_bloqueo = 'no'
         else:
@@ -53,13 +57,39 @@ def validacion(db,num_soporte):
             estado = 1
         if titulo == 0:
             estado = 0
-    if bloqueo == 0:
+    else:
         estado = 0
-    viaje(db,num_soporte,estado)
-    return
+    #if firma == hash_fecha:
+    #    estado = 1
+    #else:
+    #    estado = 0
+    hecho = viaje(db,num_soporte,estado)
+    
+    if hecho == 1:
+        vuelta = genera_firma()
+        actualiza_firma(db, num_soporte, vuelta)    
+        
+    return vuelta
     #if bloqueo == 0:
     
     #cursor.execute(sql)
+
+def genera_firma():
+    fecha = datetime.now()
+    print(fecha)
+    to_integer = fecha.strftime('%Y%m%d%H%M%S')
+    print(to_integer)
+    hash_fecha =hash(to_integer)
+    print(hash_fecha)
+    vuelta =str(hash_fecha)
+    return vuelta
+
+def actualiza_firma(db, num_soporte, vuelta):
+    cursor = db.cursor()
+    sql = "UPDATE `soporte`SET `firma` = %s WHERE `uid_soporte`= %s"
+    cursor.execute(sql,(vuelta, num_soporte))
+    db.commit()
+    
 
 def nombre_titulo(db,num_titulo):
     cursor = db.cursor()
@@ -91,7 +121,9 @@ def viaje(db,num_soporte,estado):
 
     fecha1 = datetime.today().strftime('%Y-%m-%d')
     hora1 = datetime.today().strftime('%H:%M:%S')
-    estacion = 101534
+    estaciones_test =['101534','102763','103601']
+    estacion = random.choice(estaciones_test)
+    print("La estación será {0}".format(estacion))
 
     cursor.execute(sql,(num_soporte,'',fecha1,hora1,estado,estacion))
     db.commit()
@@ -101,8 +133,19 @@ def viaje(db,num_soporte,estado):
     else:
         print("El soporte {0} no ha realizado la validación por no disponer de un título válido".format(num_soporte))
 
-    return 
+    return estado
+
+def registra_soporte(db,num_soporte,dni,firma):
+    cursor = db.cursor()
+
+    sql = "INSERT INTO `soporte`(`uid_soporte`, `dni_asociado`, `bloqueo`, `titulo`, `fecha_primer_uso`, `zonas`, `viajes_restantes`, `firma`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+
+    cursor.execute(sql,(num_soporte,dni,0,0,'',0,0,firma))
+    db.commit()
     
+    print("El soporte {0} ha sido vinculado al DNI: {1} con la firma : {2}".format(num_soporte, dni, firma))
+
+    return 
 
 def cerrar_conexion(db):
     db.close()
