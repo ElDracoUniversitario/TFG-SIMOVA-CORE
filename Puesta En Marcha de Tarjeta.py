@@ -15,6 +15,6 @@ try:
         print("Aproxime tarjeta:")
         reader.write(firma)
         consulta.actualiza_firma(db,id,firma)
-        print("Tajeta" +id+ "con DNI:"+ text+ "Firmada: "+text)
+        print("Tajeta" +str(id)+ "con DNI:"+ text+ "Firmada: "+firma)
 finally:
         GPIO.cleanup()
