@@ -10,8 +10,8 @@ reader = SimpleMFRC522()
 
 try:
     while True:
-        db = consulta.conexion()
         id, text = reader.read()
+        db = consulta.conexion()
         print(id)
         print(type(id))
         print(text)
