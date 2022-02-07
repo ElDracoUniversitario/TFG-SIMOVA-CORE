@@ -6,8 +6,9 @@ import consulta
 reader = SimpleMFRC522()
 
 try:
-        db = consulta.conexion()
+
         id, text = reader.read()
+        db = consulta.conexion()
         firma = consulta.genera_firma()
         
         text = input('A que DNI se va a vincular la tarjeta:')
